@@ -26,7 +26,7 @@ export const createOrder = async (req: Request, res: Response) => {
         );
     }
 
-    if (extras?.length > 0 && !CertificateConfig.extras[extras]) {
+    if (extras && extras.length > 0 && !CertificateConfig.extras[extras]) {
         throw new AppError(
             "UPSELL_NOT_FOUND",
             MSG.EXTRA_NOT_FOUND,

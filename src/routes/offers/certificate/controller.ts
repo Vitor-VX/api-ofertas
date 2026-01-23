@@ -8,6 +8,7 @@ import { HttpResponse } from "../../../core/http/response";
 import { MercadoPago } from "../../../libs/mercadopago";
 import { Providers } from "../../../data/providers";
 import { signOrderToken } from "../../../core/auth/order-jwt";
+import { randomUUID } from "crypto";
 
 export const createOrder = async (req: Request, res: Response) => {
     const { product, name, whatsapp, cpf, email } = req.body;
@@ -47,7 +48,7 @@ export const createOrder = async (req: Request, res: Response) => {
         totalPrice += CertificateConfig.extras[extras].price;
     }
 
-    const orderId = crypto.randomUUID();
+    const orderId = randomUUID();
     const apiToken =
         process.env.PROD === "false"
             ? process.env.API_KEY_MP_TEST

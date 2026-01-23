@@ -12,9 +12,14 @@ import { randomUUID } from "crypto";
 
 export const createOrder = async (req: Request, res: Response) => {
     const { product, name, whatsapp, cpf, email } = req.body;
-    const { plan, extras, certificates }: {
+
+    const {
+        plan,
+        extras,
+        certificates
+    }: {
         plan: PlanKey;
-        extras?: string;
+        extras?: string[];
         certificates: ICertifcate[];
     } = product;
 
@@ -26,12 +31,16 @@ export const createOrder = async (req: Request, res: Response) => {
         );
     }
 
-    if (extras && extras.length > 0 && !CertificateConfig.extras[extras]) {
-        throw new AppError(
-            "UPSELL_NOT_FOUND",
-            MSG.EXTRA_NOT_FOUND,
-            HttpStatus.UNPROCESSABLE_ENTITY
-        );
+    if (extras && extras.length > 0) {
+        for (const extra of extras) {
+            if (!CertificateConfig.extras[extra]) {
+                throw new AppError(
+                    "UPSELL_NOT_FOUND",
+                    MSG.EXTRA_NOT_FOUND,
+                    HttpStatus.UNPROCESSABLE_ENTITY
+                );
+            }
+        }
     }
 
     const selectedPlan = CertificateConfig.plan[plan];
@@ -45,10 +54,17 @@ export const createOrder = async (req: Request, res: Response) => {
 
     let totalPrice = selectedPlan.price;
     if (extras && extras.length > 0) {
-        totalPrice += CertificateConfig.extras[extras].price;
+        for (const extra of extras) {
+            totalPrice += CertificateConfig.extras[extra].price;
+        }
     }
 
-    const orderId = randomUUID();
+    const pendingOrder = await OrdersCertificate.findOne({
+        "customer.cpf": cpf,
+        "payment.status": { $ne: "approved" }
+    });
+
+    const orderId = pendingOrder?.offer?.id ?? randomUUID();
     const apiToken =
         process.env.PROD === "false"
             ? process.env.API_KEY_MP_TEST
@@ -69,6 +85,45 @@ export const createOrder = async (req: Request, res: Response) => {
             }
         }
     });
+
+    if (pendingOrder) {
+        await OrdersCertificate.updateOne(
+            { _id: pendingOrder._id },
+            {
+                $set: {
+                    offer: {
+                        id: orderId,
+                        amount: selectedPlan.quantity,
+                        price: totalPrice
+                    },
+                    customer: {
+                        name,
+                        whatsapp,
+                        cpf,
+                        email
+                    },
+                    certificate: certificates,
+                    payment: {
+                        provider: Providers.MERCADO_PAGO,
+                        paymentId: payment.id.toString(),
+                        status: payment.status
+                    },
+                    updatedAt: new Date()
+                }
+            }
+        );
+
+        const token = signOrderToken(orderId);
+        return HttpResponse.success(
+            res,
+            {
+                orderId: pendingOrder.id,
+                token,
+                payment
+            },
+            "Pedido pendente atualizado com sucesso."
+        );
+    }
 
     const order = await OrdersCertificate.create({
         offer: {
@@ -91,11 +146,15 @@ export const createOrder = async (req: Request, res: Response) => {
     });
 
     const token = signOrderToken(orderId);
-    return HttpResponse.success(res, {
-        orderId: order.id,
-        token,
-        payment
-    }, "Pedido criado com sucesso.");
+    return HttpResponse.success(
+        res,
+        {
+            orderId: order.id,
+            token,
+            payment
+        },
+        "Pedido criado com sucesso."
+    );
 };
 
 export const getCurrentOrder = async (req: Request, res: Response) => {

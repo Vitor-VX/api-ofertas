@@ -88,4 +88,12 @@ export class MercadoPago {
             );
         }
     }
+
+    async getPayment(paymentId: string) {
+        const response = await this.payment.get({
+            id: paymentId
+        });
+
+        return response;
+    }
 }

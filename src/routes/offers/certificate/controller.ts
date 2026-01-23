@@ -44,7 +44,7 @@ export const createOrder = async (req: Request, res: Response) => {
     }
 
     let totalPrice = selectedPlan.price;
-    if (extras) {
+    if (extras && extras.length > 0) {
         totalPrice += CertificateConfig.extras[extras].price;
     }
 

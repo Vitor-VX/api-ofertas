@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "bullmq": "^5.66.6",
+    "canvas": "^3.2.1",
     "chalk": "^4.1.2",
     "cors": "^2.8.6",
     "crypto": "^1.0.1",
@@ -23,6 +24,7 @@
     "mercadopago": "^2.12.0",
     "moment": "^2.30.1",
     "mongoose": "^9.1.5",
+    "playwright": "^1.58.0",
     "redis": "^5.10.0"
   },
   "devDependencies": {

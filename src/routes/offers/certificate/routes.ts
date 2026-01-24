@@ -1,6 +1,6 @@
 import express from "express";
 import { body } from "express-validator";
-import { createOrder, getCurrentOrder, getOrderPaymentStatus } from "./controller";
+import { createOrder, getCurrentOrder, getOrderPaymentStatus, mercadoPagoWebhook } from "./controller";
 import { validate } from "../../../middlewares/validate";
 import { orderAuth } from "../../../middlewares/order-auth";
 
@@ -42,6 +42,27 @@ router.post(
     ],
     validate,
     createOrder
+);
+
+router.post(
+    "/payments/webhook",
+    [
+        body("type")
+            .isString()
+            .notEmpty(),
+
+        body("action")
+            .optional()
+            .isString(),
+
+        body("data")
+            .isObject(),
+
+        body("data.id")
+            .isString()
+            .notEmpty()
+    ],
+    mercadoPagoWebhook
 );
 
 router.get(

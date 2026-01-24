@@ -23,7 +23,7 @@ export const CertificateConfig: {
         single: {
             quantity: 1,
             certificates: 1,
-            price: 14.90
+            price: 9.90
         },
 
         couple: {
@@ -41,7 +41,7 @@ export const CertificateConfig: {
 
     extras: {
         fast_delivery: {
-            price: 5.90
+            price: 4.90
         }
     },
 

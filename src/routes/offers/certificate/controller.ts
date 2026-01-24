@@ -9,6 +9,9 @@ import { MercadoPago } from "../../../libs/mercadopago";
 import { Providers } from "../../../data/providers";
 import { signOrderToken } from "../../../core/auth/order-jwt";
 import { randomUUID } from "crypto";
+import { generateCertificateImage } from "../../../libs/certificate-generate";
+import { BREATHING_BASE64, INPUT_IMAGE_BASE64 } from "./data";
+import crypto from "crypto";
 
 export const createOrder = async (req: Request, res: Response) => {
     const { product, name, whatsapp, cpf, email } = req.body;
@@ -188,6 +191,95 @@ export const getCurrentOrder = async (req: Request, res: Response) => {
         }
     });
 };
+
+export async function mercadoPagoWebhook(
+    req: Request,
+    res: Response
+) {
+    try {
+        const signature = req.headers["x-signature"] as string;
+        const requestId = req.headers["x-request-id"] as string;
+
+        if (!signature || !requestId) {
+            return res.status(401).json({
+                error: "Missing Mercado Pago headers"
+            });
+        }
+
+        /**
+         * x-signature format:
+         * ts=123456789,v1=abcdef
+         */
+        const parts = signature.split(",");
+
+        const tsPart = parts.find(p => p.startsWith("ts="));
+        const v1Part = parts.find(p => p.startsWith("v1="));
+
+        if (!tsPart || !v1Part) {
+            return res.status(401).json({
+                error: "Invalid signature format"
+            });
+        }
+
+        const timestamp = tsPart.replace("ts=", "");
+        const receivedHash = v1Part.replace("v1=", "");
+
+        const secret = process.env.MP_WEBHOOK_SECRET;
+        if (!secret) {
+            throw new Error("MP_WEBHOOK_SECRET not configured");
+        }
+
+        const payload = `${requestId}${timestamp}${secret}`;
+        const expectedHash = crypto
+            .createHash("sha256")
+            .update(payload)
+            .digest("hex");
+
+        if (expectedHash !== receivedHash) {
+            return res.status(401).json({
+                error: "Invalid webhook signature"
+            });
+        }
+
+        // ✅ assinatura válida
+        // -----------------------------
+
+        const { type, data, action } = req.body;
+
+        if (type !== "payment") {
+            return res.sendStatus(200);
+        }
+
+        const paymentId = data.id;
+
+        console.log("🔔 Webhook Mercado Pago:", {
+            paymentId,
+            action
+        });
+
+        /**
+         * Agora você faz:
+         *
+         * GET /v1/payments/:id
+         *
+         * e verifica:
+         * status === "approved"
+         */
+
+        // exemplo:
+        // const payment = await getPaymentById(paymentId);
+
+        // if (payment.status === "approved") {
+        //   await markOrderAsPaid(payment.external_reference);
+        // }
+
+        return res.sendStatus(200);
+
+    } catch (err) {
+        console.error("Webhook error:", err);
+        return res.sendStatus(500);
+    }
+}
 
 export const getOrderPaymentStatus = async (
     req: Request,

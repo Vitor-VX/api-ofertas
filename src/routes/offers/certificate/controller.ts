@@ -240,6 +240,8 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
         }
 
         const { type, action, data } = req.body;
+        console.log(req.body);
+        
         if (type === "payment") {
             const paymentId = data.id;
             console.log("🔔 Pagamento recebido:", paymentId, "Ação:", action);

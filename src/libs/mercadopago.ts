@@ -27,7 +27,7 @@ export interface MercadoPagoPixResponse {
     expirationDate: string;
 }
 
-export class MercadoPago {
+class MercadoPago {
     private payment: Payment;
 
     constructor(accessToken: string) {
@@ -97,3 +97,9 @@ export class MercadoPago {
         return response;
     }
 }
+
+const apiToken =
+    process.env.PROD === "false"
+        ? process.env.API_KEY_MP_TEST
+        : process.env.API_KEY_MP;
+export const mercadoPago = new MercadoPago(apiToken!!);

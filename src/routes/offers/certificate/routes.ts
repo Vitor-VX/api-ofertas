@@ -1,6 +1,6 @@
 import express from "express";
 import { body } from "express-validator";
-import { createOrder, getCurrentOrder, getOrderPaymentStatus, mercadoPagoWebhook } from "./controller";
+import { createOrder, getCurrentOrder, mercadoPagoWebhook } from "./controller";
 import { validate } from "../../../middlewares/validate";
 import { orderAuth } from "../../../middlewares/order-auth";
 
@@ -69,12 +69,6 @@ router.get(
     "/orders/current",
     orderAuth,
     getCurrentOrder
-);
-
-router.get(
-    "/orders/status",
-    orderAuth,
-    getOrderPaymentStatus
 );
 
 export default router;

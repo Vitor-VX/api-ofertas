@@ -5,13 +5,14 @@ import { AppError } from "../../../core/http/error";
 import { CertificateMessages as MSG } from "./messages";
 import { HttpStatus } from "../../../core/http/status";
 import { HttpResponse } from "../../../core/http/response";
-import { MercadoPago } from "../../../libs/mercadopago";
+import { mercadoPago } from "../../../libs/mercadopago";
 import { Providers } from "../../../data/providers";
 import { signOrderToken } from "../../../core/auth/order-jwt";
 import { randomUUID } from "crypto";
 import { generateCertificateImage } from "../../../libs/certificate-generate";
 import { BREATHING_BASE64, INPUT_IMAGE_BASE64 } from "./data";
 import crypto from "crypto";
+import { mpFilas } from "../../../libs/bullMq";
 
 export const createOrder = async (req: Request, res: Response) => {
     const { product, name, whatsapp, cpf, email } = req.body;
@@ -68,13 +69,7 @@ export const createOrder = async (req: Request, res: Response) => {
     });
 
     const orderId = pendingOrder?.offer?.id ?? randomUUID();
-    const apiToken =
-        process.env.PROD === "false"
-            ? process.env.API_KEY_MP_TEST
-            : process.env.API_KEY_MP;
-
-    const mp = new MercadoPago(apiToken!);
-    const payment = await mp.createPix({
+    const payment = await mercadoPago.createPix({
         transactionAmount: totalPrice,
         description: "Certificado do Amor 💖",
         externalReference: orderId,
@@ -240,11 +235,11 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
         }
 
         const { type, action, data } = req.body;
-        console.log(req.body);
         
         if (type === "payment") {
             const paymentId = data.id;
             console.log("🔔 Pagamento recebido:", paymentId, "Ação:", action);
+            mpFilas.job(paymentId);
         }
 
         return res.sendStatus(200);
@@ -253,51 +248,3 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
         return res.sendStatus(500);
     }
 }
-
-export const getOrderPaymentStatus = async (
-    req: Request,
-    res: Response
-) => {
-    const orderId = req.orderId;
-    const order = await OrdersCertificate.findOne({
-        "offer.id": orderId
-    }).lean();
-
-    if (!order) {
-        throw new AppError(
-            "ORDER_NOT_FOUND",
-            "Pedido não encontrado.",
-            HttpStatus.NOT_FOUND
-        );
-    }
-
-    if (!order.payment?.paymentId) {
-        throw new AppError(
-            "PAYMENT_NOT_FOUND",
-            "Pagamento não encontrado.",
-            HttpStatus.UNPROCESSABLE_ENTITY
-        );
-    }
-
-    const apiToken =
-        process.env.PROD === "false"
-            ? process.env.API_KEY_MP_TEST
-            : process.env.API_KEY_MP;
-
-    const mp = new MercadoPago(apiToken!);
-    const payment = await mp.getPayment(order.payment.paymentId);
-
-    return HttpResponse.success(res, {
-        orderId: order.offer.id,
-        amount: order.offer.price,
-        status: payment.status,
-        payment: {
-            provider: "mercadopago",
-            paymentId: payment.id,
-            status: payment.status,
-            qrCode: payment.point_of_interaction?.transaction_data?.qr_code || null,
-            qrCodeBase64:
-                payment.point_of_interaction?.transaction_data?.qr_code_base64 || null
-        }
-    });
-};

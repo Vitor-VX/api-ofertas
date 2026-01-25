@@ -34,15 +34,15 @@ const sendProductToWhataspp = async (number: string, content: string) => {
 }
 
 const deliverProduct = async (paymentID: string, id: string) => {
-    const order = await OrdersCertificate.findOne(
-        { "offer.id": id, "payment.paymentId": paymentID },
-        {
-            offer: 1,
-            payment: 1,
-            createdAt: 1
-        }
-    );
-    if (!order) return;
+    const order = await OrdersCertificate.findOne({
+        "offer.id": id,
+        "payment.paymentId": paymentID
+    });
+
+    if (!order) {
+        msg.error(`Ordem não encontrada para o paymentID: ${paymentID}`);
+        return;
+    }
 
     order.payment.status = "approved";
     await order.save();
@@ -78,7 +78,7 @@ const worker = new Worker("payments-mp", async (job) => {
 
         console.log(payment);
         if (payment.status !== "approved") return;
-        
+
         deliverProduct(paymentID, payment.external_reference!!);
     } catch (error: any) {
         const status = error?.status;

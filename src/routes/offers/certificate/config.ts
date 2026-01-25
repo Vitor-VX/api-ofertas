@@ -25,7 +25,8 @@ export const CertificateConfig: {
         single: {
             quantity: 1,
             certificates: 1,
-            price: isProd() ? 9.90 : 0.05
+            price: 0.05
+            // price: isProd() ? 9.90 : 0.05
         },
 
         couple: {

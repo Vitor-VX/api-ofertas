@@ -22,7 +22,7 @@ const worker = new Worker("payments-mp", async (job) => {
         console.log(payment);
     } catch (error: any) {
         const status = error.response?.status;
-        console.log(error.response);
+        console.log(error);
         
         if (status === 404) {
             msg.error(`Pagamento ${paymentID} não existe. Abortando.`);

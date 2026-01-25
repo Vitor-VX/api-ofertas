@@ -22,6 +22,8 @@ const worker = new Worker("payments-mp", async (job) => {
         console.log(payment);
     } catch (error: any) {
         const status = error.response?.status;
+        console.log(error.response);
+        
         if (status === 404) {
             msg.error(`Pagamento ${paymentID} não existe. Abortando.`);
             throw new UnrecoverableError("ID inválido");

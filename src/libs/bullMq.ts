@@ -22,7 +22,14 @@ class BullMQ {
             paymentID: id,
         }, {
             attempts: 10,
-            backoff: 30000
+            backoff: 30000,
+            removeOnComplete: {
+                age: 3600,
+                count: 50
+            },
+            removeOnFail: {
+                age: 3600
+            }
         });
 
         msg.warn(`Job para o ID "${id}" adicionado.`);

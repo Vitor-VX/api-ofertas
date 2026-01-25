@@ -13,6 +13,7 @@ import { generateCertificateImage } from "../../../libs/certificate-generate";
 import { BREATHING_BASE64, INPUT_IMAGE_BASE64 } from "./data";
 import crypto from "crypto";
 import { mpFilas } from "../../../libs/bullMq";
+import { msg } from "../../../utils/logs";
 
 export const createOrder = async (req: Request, res: Response) => {
     const { product, name, whatsapp, cpf, email } = req.body;
@@ -194,9 +195,11 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
 
         const dataId = req.query["data.id"] as string;
         if (!signature || !requestId || !dataId) {
-            return res.status(401).json({
-                error: "Missing required Mercado Pago headers or query params"
-            });
+            throw new AppError(
+                "HEADERS_REQUIRED",
+                MSG.HEADERS_REQUIRED,
+                HttpStatus.UNAUTHORIZED
+            );
         }
 
         const parts = signature.split(",");
@@ -214,7 +217,11 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
         });
 
         if (!ts || !receivedHash) {
-            return res.status(401).json({ error: "Invalid signature format" });
+            throw new AppError(
+                "INVALID_SIGNATURE",
+                MSG.INVALID_SIGNATURE,
+                HttpStatus.UNAUTHORIZED
+            );
         }
 
         const secret = process.env.MP_WEBHOOK_SECRET;
@@ -228,23 +235,26 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
 
         const expectedHash = hmac.digest("hex");
         if (expectedHash !== receivedHash) {
-            console.error("Signature mismatch!");
-            return res.status(401).json({
-                error: "Invalid webhook signature"
-            });
+            msg.error("Signature mismatch!");
+            throw new AppError(
+                "INVALID_WEBHOOK",
+                MSG.HEADERS_REQUIRED,
+                HttpStatus.UNAUTHORIZED
+            );
         }
 
         const { type, action, data } = req.body;
-        
         if (type === "payment") {
             const paymentId = data.id;
-            console.log("🔔 Pagamento recebido:", paymentId, "Ação:", action);
+            msg.success(`Pagamento recebido: ${paymentId} | Ação: ${action}`);
             mpFilas.job(paymentId);
         }
 
-        return res.sendStatus(200);
-    } catch (err) {
-        console.error("Webhook error:", err);
+        return HttpResponse.success(res, {});
+    } catch (err: any) {
+        if (err instanceof AppError) throw err;
+
+        msg.error(`Webhook error: ${err.message}`);
         return res.sendStatus(500);
     }
 }

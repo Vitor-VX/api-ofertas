@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Worker } from "bullmq";
+import { UnrecoverableError, Worker } from "bullmq";
 import { mercadoPago } from "../../libs/mercadopago";
 import { msg } from "../../utils/logs";
 import { isProd } from "../../utils/isProd";
@@ -15,10 +15,22 @@ const worker = new Worker("payments-mp", async (job) => {
     const idFila = job.id;
     const { paymentID } = job.data;
 
-    msg.info(`Evento recebido do JOB com ID: ${idFila} | PaymentID: ${paymentID}`);
+    try {
+        msg.info(`Evento recebido do JOB com ID: ${idFila} | PaymentID: ${paymentID}`);
 
-    const payment = await mercadoPago.getPayment(paymentID);
-    console.log(payment);
+        const payment = await mercadoPago.getPayment(paymentID);
+        console.log(payment);
+    } catch (error: any) {
+        const status = error.response?.status;
+        if (status === 404) {
+            msg.error(`Pagamento ${paymentID} não existe. Abortando.`);
+            throw new UnrecoverableError("ID inválido");
+        }
+
+        if (status === 429) {
+            msg.warn("Muitas requisições (Rate Limit). O BullMQ tentará novamente em breve.");
+        }
+    }
 
     return { success: true };
 }, {

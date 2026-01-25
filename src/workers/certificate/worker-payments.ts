@@ -1,4 +1,6 @@
 import "dotenv/config";
+import "../../database/connect";
+
 import { UnrecoverableError, Worker } from "bullmq";
 import { mercadoPago } from "../../libs/mercadopago";
 import { msg } from "../../utils/logs";

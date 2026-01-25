@@ -96,6 +96,10 @@ const worker = new Worker("payments-mp", async (job) => {
     connection
 });
 
+worker.on("active", () => {
+    msg.info("Worker iniciado..");
+});
+
 worker.on("completed", (job) => {
     msg.success(`Job ${job.id} finalizado!`);
 });

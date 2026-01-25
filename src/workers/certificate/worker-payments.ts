@@ -21,8 +21,7 @@ const worker = new Worker("payments-mp", async (job) => {
         const payment = await mercadoPago.getPayment(paymentID);
         console.log(payment);
     } catch (error: any) {
-        const status = error.response?.status;
-        console.log(error);
+        const status = error?.status;
         
         if (status === 404) {
             msg.error(`Pagamento ${paymentID} não existe. Abortando.`);

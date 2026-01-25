@@ -41,7 +41,7 @@ const deliverProduct = async (paymentID: string, id: string) => {
             payment: 1,
             createdAt: 1
         }
-    ).lean();
+    );
     if (!order) return;
 
     order.payment.status = "approved";

@@ -74,7 +74,6 @@ export const createOrder = async (req: Request, res: Response) => {
         transactionAmount: totalPrice,
         description: "Certificado do Amor 💖",
         externalReference: orderId,
-        notificationUrl: "https://api.seusite.com/webhooks/mp",
         payer: {
             email,
             firstName: name,

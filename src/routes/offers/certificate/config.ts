@@ -1,3 +1,5 @@
+import { isProd } from "../../../utils/isProd";
+
 export type PlanKey = "single" | "couple" | "family";
 
 export interface IPlan {
@@ -23,7 +25,7 @@ export const CertificateConfig: {
         single: {
             quantity: 1,
             certificates: 1,
-            price: 9.90
+            price: isProd() ? 9.90 : 0.05
         },
 
         couple: {

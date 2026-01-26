@@ -19,8 +19,7 @@ export async function imageUrlToBase64(url: string): Promise<string | null> {
         });
 
         const buffer = Buffer.from(response.data);
-        const mime =
-            response.headers["content-type"] || "image/jpeg";
+        const mime = response.headers["content-type"] || "image/jpeg";
 
         return `data:${mime};base64,${buffer.toString("base64")}`;
     } catch (err) {
@@ -35,6 +34,8 @@ export async function generateCertificateImage(
     INPUT_IMAGE_BASE64: string,
     INPUT_IMAGE_WITH_PHOTO_BASE64: string | null = null
 ): Promise<Buffer> {
+    console.log(data);
+    
     if (data.photo?.startsWith("http")) {
         const base64Photo = await imageUrlToBase64(data.photo);
         data.photo = base64Photo;

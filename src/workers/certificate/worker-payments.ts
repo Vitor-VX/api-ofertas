@@ -74,7 +74,7 @@ const deliverProduct = async (paymentID: string, id: string) => {
                 city,
                 one,
                 two,
-                photo
+                photo: null
             },
             BREATHING_BASE64,
             INPUT_IMAGE_BASE64,

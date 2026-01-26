@@ -107,8 +107,8 @@ const deliverProduct = async (paymentID: string, id: string) => {
     if (withImg) {
         items.push({
             content: img_with_photo.toString("base64"),
-            fileName: "certificado.png",
-            caption: "✨ Seu certificado do amor",
+            fileName: "certificado_com_foto.png",
+            caption: "💖 Versão com foto",
         })
     }
 

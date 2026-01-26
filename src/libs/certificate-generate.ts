@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import axios from "axios";
 
 interface CertificateData {
     couple: string;
@@ -9,12 +10,36 @@ interface CertificateData {
     two: string;
 }
 
+
+export async function imageUrlToBase64(url: string): Promise<string | null> {
+    try {
+        const response = await axios.get(url, {
+            responseType: "arraybuffer",
+            timeout: 10000
+        });
+
+        const buffer = Buffer.from(response.data);
+        const mime =
+            response.headers["content-type"] || "image/jpeg";
+
+        return `data:${mime};base64,${buffer.toString("base64")}`;
+    } catch (err) {
+        console.error("Erro ao converter imagem:", err);
+        return null;
+    }
+}
+
 export async function generateCertificateImage(
     data: CertificateData,
     BREATHING_BASE64: string,
     INPUT_IMAGE_BASE64: string,
     INPUT_IMAGE_WITH_PHOTO_BASE64: string | null = null
 ): Promise<Buffer> {
+    if (data.photo?.startsWith("http")) {
+        const base64Photo = await imageUrlToBase64(data.photo);
+        data.photo = base64Photo;
+    };
+
     const browser = await chromium.launch({
         headless: true
     });

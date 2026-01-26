@@ -125,8 +125,6 @@ const worker = new Worker("payments-mp", async (job) => {
         msg.info(`Evento recebido do JOB com ID: ${idFila} | PaymentID: ${paymentID}`);
 
         const payment = await mercadoPago.getPayment(paymentID);
-
-        console.log(payment);
         if (payment.status !== "approved") return;
 
         deliverProduct(paymentID, payment.external_reference!!);

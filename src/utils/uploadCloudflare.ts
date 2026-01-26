@@ -20,6 +20,31 @@ const s3Client = new S3({
     }
 });
 
+function detectImageMime(buffer: Buffer) {
+    const hex = buffer.toString("hex", 0, 12);
+
+    if (hex.startsWith("ffd8ff")) {
+        return { ext: "jpg", mime: "image/jpeg" };
+    }
+
+    if (hex.startsWith("89504e47")) {
+        return { ext: "png", mime: "image/png" };
+    }
+
+    if (hex.startsWith("47494638")) {
+        return { ext: "gif", mime: "image/gif" };
+    }
+
+    if (
+        hex.startsWith("52494646") &&
+        buffer.toString("ascii", 8, 12) === "WEBP"
+    ) {
+        return { ext: "webp", mime: "image/webp" };
+    }
+
+    return null;
+}
+
 const BUCKET = "botsync-files";
 const PUBLIC_URL = "https://files.botsync.site";
 
@@ -38,9 +63,9 @@ class UploadCloudFlare {
     ): Promise<{ url: string; key: string } | null> {
 
         try {
-            const type = await fileTypeFromBuffer(buffer);
+            const type = detectImageMime(buffer);
             if (!type) {
-                throw new Error("Não foi possível identificar o tipo do arquivo");
+                throw new Error("Formato de imagem não suportado");
             }
 
             if (

@@ -7,6 +7,9 @@ import { errorHandler } from "./middlewares/errorHandler";
 import express from "express";
 import cors from "cors";
 import OffersRoutes from "./routes/offers";
+import { BREATHING_BASE64, INPUT_IMAGE_BASE64, INPUT_IMAGE_WITH_PHOTO_BASE64 } from "./routes/offers/certificate/data";
+import { generateCertificateImage } from "./libs/certificate-generate";
+import { writeFileSync } from "fs";
 
 const app = express();
 const port = process.env.PORT || 4545;
@@ -24,10 +27,12 @@ app.use(errorHandler);
 //         date: "12/12/2005",
 //         city: "Minas Gerais MG",
 //         one: "Keila",
-//         two: "Heitor"
+//         two: "Heitor",
+//         photo: 'https://files.botsync.site/certificates/45b1afb4-a714-44c6-b474-a7cbe7698947.jpg'
 //     },
 //     BREATHING_BASE64,
-//     INPUT_IMAGE_BASE64
+//     INPUT_IMAGE_BASE64,
+//     INPUT_IMAGE_WITH_PHOTO_BASE64
 // ).then(res => {
 //     writeFileSync("certidao.png", res);
 // });

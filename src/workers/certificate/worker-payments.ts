@@ -95,21 +95,23 @@ const deliverProduct = async (paymentID: string, id: string) => {
         )
     ]);
 
-    const withImg = order.certificate.some(el => el.photo !== null);
+    const withImg = order.certificate.some(el =>
+        typeof el.photo === "string" && el.photo.trim().length > 0
+    );
     const items: MediaItem[] = [
         {
             content: img_not_photo.toString("base64"),
             fileName: "certificado.png",
             caption: "✨ Seu certificado do amor",
-        },
+        }
     ];
 
-    if (withImg) {
+    if (withImg && img_with_photo) {
         items.push({
             content: img_with_photo.toString("base64"),
             fileName: "certificado_com_foto.png",
             caption: "💖 Versão com foto",
-        })
+        });
     }
 
     await sendProductToWhataspp(order.customer.whatsapp, items);

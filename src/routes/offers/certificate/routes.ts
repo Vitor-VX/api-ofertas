@@ -35,7 +35,7 @@ router.post(
             .notEmpty(),
         body("product.certificates.*.photo")
             .isString()
-            .notEmpty(),
+            .optional(),
 
 
         body("name").isString().notEmpty(),

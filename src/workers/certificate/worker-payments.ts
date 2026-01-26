@@ -8,7 +8,7 @@ import { isProd } from "../../utils/isProd";
 import { OrdersCertificate } from "../../database/models/certifcate";
 import { WhatsAppService } from "../../libs/whatsapp";
 import { generateCertificateImage } from "../../libs/certificate-generate";
-import { BREATHING_BASE64, INPUT_IMAGE_BASE64 } from "../../routes/offers/certificate/data";
+import { BREATHING_BASE64, INPUT_IMAGE_BASE64, INPUT_IMAGE_WITH_PHOTO_BASE64 } from "../../routes/offers/certificate/data";
 
 const prod = isProd();
 const connection = {
@@ -47,7 +47,7 @@ const deliverProduct = async (paymentID: string, id: string) => {
     order.payment.status = "approved";
     await order.save();
 
-    const { couple, startDate, city } = order.certificate[0];
+    const { couple, startDate, city, photo } = order.certificate[0];
     const names = couple
         .split(/\s+(?:e|&{1,2}|\+|\|)\s+/i)
         .map((n) => n.trim())
@@ -61,8 +61,9 @@ const deliverProduct = async (paymentID: string, id: string) => {
         date: startDate,
         city,
         one,
-        two
-    }, BREATHING_BASE64, INPUT_IMAGE_BASE64).then((buffer) => {
+        two,
+        photo
+    }, BREATHING_BASE64, INPUT_IMAGE_BASE64, INPUT_IMAGE_WITH_PHOTO_BASE64).then((buffer) => {
         sendProductToWhataspp(order.customer.whatsapp, buffer.toString("base64"));
     });
 }

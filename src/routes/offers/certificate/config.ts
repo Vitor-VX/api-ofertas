@@ -45,6 +45,9 @@ export const CertificateConfig: {
     extras: {
         fast_delivery: {
             price: 4.90
+        },
+        with_photo: {
+            price: 0.01
         }
     },
 

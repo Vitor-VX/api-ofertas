@@ -1,10 +1,10 @@
-// libs/certificate-generator.ts
 import { chromium } from "playwright";
 
 interface CertificateData {
     couple: string;
     date: string;
     city: string;
+    photo: string | null;
     one: string;
     two: string;
 }
@@ -12,7 +12,8 @@ interface CertificateData {
 export async function generateCertificateImage(
     data: CertificateData,
     BREATHING_BASE64: string,
-    INPUT_IMAGE_BASE64: string
+    INPUT_IMAGE_BASE64: string,
+    INPUT_IMAGE_WITH_PHOTO_BASE64: string | null = null
 ): Promise<Buffer> {
     const browser = await chromium.launch({
         headless: true
@@ -59,13 +60,39 @@ const data = ${JSON.stringify(data)};
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 
+const layoutWithoutPhoto = {
+  couple: { x: 620, y: 775, size: 40 },
+  date:   { x: 680, y: 835, size: 33 },
+  city:   { x: 580, y: 905, size: 33 },
+  one:    { x: 298, y: 1515, size: 33 },
+  two:    { x: 775, y: 1515, size: 33 }
+};
+
+const layoutWithPhoto = {
+  couple: { x: 820, y: 785, size: 25 },
+  date:   { x: 860, y: 855, size: 25 },
+  city:   { x: 825, y: 925, size: 25 },
+  one:    { x: 298, y: 1550, size: 33 },
+  two:    { x: 800, y: 1550, size: 33 }
+};
+
 (async () => {
 
   await document.fonts.load('40px "Breathing"');
   await document.fonts.ready;
 
+  const hasPhoto = !!data.photo;
+
+  const layout = hasPhoto
+    ? layoutWithPhoto
+    : layoutWithoutPhoto;
+
+  const bgBase64 = hasPhoto && "${INPUT_IMAGE_WITH_PHOTO_BASE64 ?? ""}"
+    ? "data:image/png;base64,${INPUT_IMAGE_WITH_PHOTO_BASE64 ?? INPUT_IMAGE_BASE64}"
+    : "data:image/png;base64,${INPUT_IMAGE_BASE64}";
+
   const bg = new Image();
-  bg.src = "data:image/png;base64,${INPUT_IMAGE_BASE64}";
+  bg.src = bgBase64;
   await bg.decode();
 
   ctx.drawImage(bg, 0, 0, 1080, 1920);
@@ -73,21 +100,66 @@ const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#393939";
   ctx.textAlign = "center";
 
- ctx.font = '40px "Breathing"';
- ctx.fillText(data.couple, 620, 775);
+  ctx.font = layout.couple.size + 'px "Breathing"';
+  ctx.fillText(data.couple, layout.couple.x, layout.couple.y);
 
-    ctx.font = '33px "Breathing"';
-    ctx.fillText(data.date, 680, 835);
+  ctx.font = layout.date.size + 'px "Breathing"';
+  ctx.fillText(data.date, layout.date.x, layout.date.y);
 
-    ctx.font = '33px "Breathing"';
-    ctx.fillText(data.city, 580, 905);
+  ctx.font = layout.city.size + 'px "Breathing"';
+  ctx.fillText(data.city, layout.city.x, layout.city.y);
 
-    ctx.font = '33px "Breathing"';
-    ctx.fillText(data.one, 298, 1515);
+  ctx.font = layout.one.size + 'px "Breathing"';
+  ctx.fillText(data.one, layout.one.x, layout.one.y);
 
-    ctx.font = '33px "Breathing"';
-    ctx.fillText(data.two, 775, 1515);
+  ctx.font = layout.two.size + 'px "Breathing"';
+  ctx.fillText(data.two, layout.two.x, layout.two.y);
 
+  if (hasPhoto) {
+    const photoConfig = {
+      x: 130,
+      y: 640,
+      w: 300,
+      h: 350,
+      radius: 24
+    };
+
+    const img = new Image();
+    img.src = data.photo;
+    await img.decode();
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.roundRect(
+      photoConfig.x,
+      photoConfig.y,
+      photoConfig.w,
+      photoConfig.h,
+      photoConfig.radius
+    );
+    ctx.clip();
+
+    const imgRatio = img.width / img.height;
+    const canvasRatio = photoConfig.w / photoConfig.h;
+
+    let drawX, drawY, drawW, drawH;
+
+    if (imgRatio > canvasRatio) {
+      drawH = photoConfig.h;
+      drawW = img.width * (photoConfig.h / img.height);
+      drawX = photoConfig.x + (photoConfig.w - drawW) / 2;
+      drawY = photoConfig.y;
+    } else {
+      drawW = photoConfig.w;
+      drawH = img.height * (photoConfig.w / img.width);
+      drawX = photoConfig.x;
+      drawY = photoConfig.y + (photoConfig.h - drawH) / 2;
+    }
+
+    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+    ctx.restore();
+  }
 })();
 </script>
 </body>

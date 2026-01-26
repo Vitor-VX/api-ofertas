@@ -9,11 +9,10 @@ import { mercadoPago } from "../../../libs/mercadopago";
 import { Providers } from "../../../data/providers";
 import { signOrderToken } from "../../../core/auth/order-jwt";
 import { randomUUID } from "crypto";
-import { generateCertificateImage } from "../../../libs/certificate-generate";
-import { BREATHING_BASE64, INPUT_IMAGE_BASE64 } from "./data";
 import crypto from "crypto";
 import { mpFilas } from "../../../libs/bullMq";
 import { msg } from "../../../utils/logs";
+import { uploadCloudFlare } from "../../../utils/uploadCloudflare";
 
 export const createOrder = async (req: Request, res: Response) => {
     const { product, name, whatsapp, cpf, email } = req.body;
@@ -64,6 +63,38 @@ export const createOrder = async (req: Request, res: Response) => {
         }
     }
 
+    const processedCertificates: ICertifcate[] = [];
+    for (const cert of certificates) {
+        let photoUrl: string | null = null;
+
+        if (cert.photo) {
+            const base64 = cert.photo.replace(/^data:image\/\w+;base64,/, "");
+            const buffer = Buffer.from(base64, "base64");
+
+            const upload = await uploadCloudFlare.uploadBuffer(
+                buffer,
+                "certificates"
+            );
+
+            if (!upload) {
+                throw new AppError(
+                    "UPLOAD_FAILED",
+                    "Erro ao fazer upload da imagem.",
+                    HttpStatus.INTERNAL_ERROR
+                );
+            }
+
+            photoUrl = upload.url;
+        }
+
+        processedCertificates.push({
+            couple: cert.couple,
+            startDate: cert.startDate,
+            city: cert.city,
+            photo: photoUrl || ""
+        });
+    }
+
     const pendingOrder = await OrdersCertificate.findOne({
         "customer.cpf": cpf,
         "payment.status": { $ne: "approved" }
@@ -100,7 +131,7 @@ export const createOrder = async (req: Request, res: Response) => {
                         cpf,
                         email
                     },
-                    certificate: certificates,
+                    certificate: processedCertificates,
                     payment: {
                         provider: Providers.MERCADO_PAGO,
                         paymentId: payment.id.toString(),
@@ -135,7 +166,7 @@ export const createOrder = async (req: Request, res: Response) => {
             cpf,
             email
         },
-        certificate: certificates,
+        certificate: processedCertificates,
         payment: {
             provider: Providers.MERCADO_PAGO,
             paymentId: payment.id.toString(),

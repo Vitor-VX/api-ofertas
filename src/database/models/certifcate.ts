@@ -6,6 +6,7 @@ export interface ICertifcate {
     couple: string;
     startDate: string;
     city: string;
+    photo: string;
 };
 
 export interface IOrdersCertificate extends Document {
@@ -81,6 +82,10 @@ const ordersSchema = new Schema<IOrdersCertificate>(
                 city: {
                     type: String,
                     required: true
+                },
+                photo: {
+                    type: String,
+                    default: null
                 }
             }
         ],

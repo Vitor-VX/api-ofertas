@@ -33,6 +33,9 @@ router.post(
         body("product.certificates.*.city")
             .isString()
             .notEmpty(),
+        body("product.certificates.*.photo")
+            .isString()
+            .notEmpty(),
 
 
         body("name").isString().notEmpty(),

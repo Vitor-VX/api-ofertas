@@ -34,8 +34,6 @@ export async function generateCertificateImage(
     INPUT_IMAGE_BASE64: string,
     INPUT_IMAGE_WITH_PHOTO_BASE64: string | null = null
 ): Promise<Buffer> {
-    console.log(data);
-    
     if (data.photo?.startsWith("http")) {
         const base64Photo = await imageUrlToBase64(data.photo);
         data.photo = base64Photo;
@@ -196,7 +194,7 @@ const layoutWithPhoto = {
         waitUntil: "load"
     });
 
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(1500);
     const buffer = await page.locator("canvas").screenshot({
         type: "png"
     });

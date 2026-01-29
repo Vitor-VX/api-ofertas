@@ -72,7 +72,15 @@ export class WhatsAppService {
             template: {
                 name: templateName,
                 language: { code: language },
-                components,
+                components:
+                    components.length > 0
+                        ? components
+                        : [
+                            {
+                                type: "body",
+                                parameters: [],
+                            },
+                        ],
             },
         };
 

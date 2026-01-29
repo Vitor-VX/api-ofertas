@@ -17,7 +17,7 @@ const connection = {
     password: prod ? "" : process.env.PASSWORD_REDIS_LOCAL
 }
 
-const sendProductToWhataspp = async (number: string, files: MediaItem[]) => {
+const sendProductToWhataspp = async (number: string, couple: string, files: MediaItem[]) => {
     const whatsapp = new WhatsAppService({
         accessToken: process.env.API_KEY_WHATSAPP ?? "",
         phoneNumberId: process.env.PHONE_ID ?? ""
@@ -28,7 +28,13 @@ const sendProductToWhataspp = async (number: string, files: MediaItem[]) => {
     if (isProd()) {
         await whatsapp.sendTemplate({
             to: number,
-            templateName: "entregar_certificado",
+            templateName: "entregar_prod_6",
+            components: [{
+                type: "body",
+                parameters: [
+                    { type: "text", text: couple }
+                ]
+            }]
         });
 
         await whatsapp.sendMultipleMedia({
@@ -116,7 +122,7 @@ const deliverProduct = async (paymentID: string, id: string) => {
         });
     }
 
-    await sendProductToWhataspp(order.customer.whatsapp, items);
+    await sendProductToWhataspp(order.customer.whatsapp, couple, items);
 }
 
 const worker = new Worker("payments-mp", async (job) => {

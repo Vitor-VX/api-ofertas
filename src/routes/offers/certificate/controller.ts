@@ -56,12 +56,15 @@ export const createOrder = async (req: Request, res: Response) => {
         );
     }
 
-    let totalPrice = selectedPlan.price;
+    let totalCents = Math.round(selectedPlan.price * 100);
     if (extras && extras.length > 0) {
         for (const extra of extras) {
-            totalPrice += CertificateConfig.extras[extra].price;
+            totalCents += Math.round(
+                CertificateConfig.extras[extra].price * 100
+            );
         }
     }
+    const totalPrice = totalCents / 100;
 
     const processedCertificates: ICertifcate[] = [];
     for (const cert of certificates) {
@@ -275,7 +278,7 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
 
         const { type, action, data } = req.body;
         if (type === "payment" && action === "payment.updated") {
-            const paymentId = data.id;            
+            const paymentId = data.id;
             msg.success(`Pagamento recebido: ${paymentId} | Ação: ${action}`);
             mpFilas.job(paymentId);
         }

@@ -21,6 +21,7 @@ class BullMQ {
         await this.connection.add("payment", {
             paymentID: id,
         }, {
+            jobId: `payment:${id}`,
             attempts: 10,
             backoff: 30000,
             removeOnComplete: {

@@ -52,18 +52,25 @@ const sendProductToWhataspp = async (number: string, couple: string, files: Medi
 }
 
 const deliverProduct = async (paymentID: string, id: string) => {
-    const order = await OrdersCertificate.findOne({
-        "offer.id": id,
-        "payment.paymentId": paymentID
-    });
+    const order = await OrdersCertificate.findOneAndUpdate(
+        {
+            "offer.id": id,
+            "payment.paymentId": paymentID,
+            "payment.status": { $ne: "approved" }
+        },
+        {
+            $set: {
+                "payment.status": "approved",
+                "payment.approvedAt": new Date()
+            }
+        },
+        { new: true }
+    );
 
     if (!order) {
-        msg.error(`Ordem não encontrada para o paymentID: ${paymentID}`);
+        msg.warn(`Pagamento ${paymentID} já havia sido aprovado.`);
         return;
     }
-
-    order.payment.status = "approved";
-    await order.save();
 
     const { couple, startDate, city, photo } = order.certificate[0];
     const names = couple

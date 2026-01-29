@@ -275,9 +275,7 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
 
         const { type, action, data } = req.body;
         if (type === "payment" && action === "payment.updated") {
-            const paymentId = data.id;
-            console.log(req.body);
-            
+            const paymentId = data.id;            
             msg.success(`Pagamento recebido: ${paymentId} | Ação: ${action}`);
             mpFilas.job(paymentId);
         }

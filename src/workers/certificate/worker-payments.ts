@@ -23,6 +23,8 @@ const sendProductToWhataspp = async (number: string, files: MediaItem[]) => {
         phoneNumberId: process.env.PHONE_ID ?? ""
     });
 
+    console.log(`IsProd: ${isProd()}`);
+
     if (isProd()) {
         await whatsapp.sendTemplate({
             to: number,

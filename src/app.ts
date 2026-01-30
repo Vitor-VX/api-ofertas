@@ -38,7 +38,7 @@ app.use(errorHandler);
 
 //         whatsapp.sendTemplate({
 //             to: "11934065408",
-//             templateName: "entregar_prod08",
+//             templateName: "entregar_prod_09",
 //             components: [
 //                 {
 //                     type: "header",

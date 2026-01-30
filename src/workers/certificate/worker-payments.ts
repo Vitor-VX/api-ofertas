@@ -31,7 +31,7 @@ const sendProductToWhataspp = async (number: string, couple: string, img: { one:
 
         await whatsapp.sendTemplate({
             to: number,
-            templateName: "entregar_prod08",
+            templateName: "entregar_prod_09",
             components: [
                 {
                     type: "header",

@@ -17,34 +17,41 @@ const connection = {
     password: prod ? "" : process.env.PASSWORD_REDIS_LOCAL
 }
 
-const sendProductToWhataspp = async (number: string, couple: string, files: MediaItem[]) => {
+const sendProductToWhataspp = async (number: string, couple: string, img: { one: string, two?: string }) => {
     const whatsapp = new WhatsAppService({
         accessToken: process.env.API_KEY_WHATSAPP ?? "",
         phoneNumberId: process.env.PHONE_ID ?? ""
     });
 
     if (isProd()) {
-        await whatsapp.sendTemplate({
-            to: number,
-            templateName: "entregar_prod_03",
-            components: [{
-                type: "body",
-                parameters: [
-                    { type: "text", text: couple }
-                ]
-            }]
+        const { mediaId } = await whatsapp.uploadPdfToMeta({
+            image1: img.one,
+            image2: img.two
         });
 
-        await whatsapp.sendMultipleMedia({
+        await whatsapp.sendTemplate({
             to: number,
-            type: "image",
-            files
-        });
-    } else {
-        await whatsapp.sendMultipleMedia({
-            to: number,
-            type: "image",
-            files
+            templateName: "entregar_prod_05",
+            components: [
+                {
+                    type: "header",
+                    parameters: [
+                        {
+                            type: "document",
+                            document: {
+                                id: mediaId,
+                                filename: "certificado-do-amor.zip"
+                            }
+                        }
+                    ]
+                },
+                {
+                    type: "body",
+                    parameters: [
+                        { type: "text", text: couple }
+                    ]
+                }
+            ]
         });
     }
 }
@@ -111,23 +118,15 @@ const deliverProduct = async (paymentID: string, id: string) => {
     const withImg = order.certificate.some(el =>
         typeof el.photo === "string" && el.photo.trim().length > 0
     );
-    const items: MediaItem[] = [
+
+    await sendProductToWhataspp(
+        order.customer.whatsapp,
+        couple,
         {
-            content: img_not_photo.toString("base64"),
-            fileName: "certificado.png",
-            caption: "✨ Seu certificado do amor",
+            one: img_not_photo.toString("base64"),
+            two: withImg ? img_with_photo?.toString("base64") : undefined
         }
-    ];
-
-    if (withImg && img_with_photo) {
-        items.push({
-            content: img_with_photo.toString("base64"),
-            fileName: "certificado_com_foto.png",
-            caption: "💖 Versão com foto",
-        });
-    }
-
-    await sendProductToWhataspp(order.customer.whatsapp, couple, items);
+    );
 }
 
 const worker = new Worker("payments-mp", async (job) => {

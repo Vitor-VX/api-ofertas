@@ -11,7 +11,7 @@ import { BREATHING_BASE64, INPUT_IMAGE_BASE64, INPUT_IMAGE_WITH_PHOTO_BASE64 } f
 import { generateCertificateImage } from "./libs/certificate-generate";
 import { writeFileSync } from "fs";
 import { isProd } from "./utils/isProd";
-import { WhatsAppService } from "./libs/whatsapp";
+import { MediaItem, WhatsAppService } from "./libs/whatsapp";
 import { body, query, validationResult } from "express-validator";
 
 const app = express();
@@ -28,27 +28,46 @@ app.use(errorHandler);
 //     phoneNumberId: process.env.PHONE_ID ?? ""
 // });
 
-// console.log(`IsProd: ${isProd()}`);
+// (async () => {
+//     if (isProd()) {
+//         const { mediaId } = await whatsapp.uploadPdfToMeta({
+//             image1: INPUT_IMAGE_BASE64,
+//             image2: undefined
+//         });
 
-// if (isProd()) {
-//     whatsapp.sendTemplate({
-//         to: "11934065408",
-//         templateName: "entregar_prod_03",
-//         components: [{
-//             type: "body",
-//             parameters: [
-//                 { type: "text", text: "Victor" }
+
+//         whatsapp.sendTemplate({
+//             to: "11934065408",
+//             templateName: "entregar_prod_05",
+//             components: [
+//                 {
+//                     type: "header",
+//                     parameters: [
+//                         {
+//                             type: "document",
+//                             document: {
+//                                 id: mediaId,
+//                                 filename: "certificado-do-amor.zip"
+//                             }
+//                         }
+//                     ]
+//                 },
+//                 {
+//                     type: "body",
+//                     parameters: [
+//                         { type: "text", text: "Victor" }
+//                     ]
+//                 }
 //             ]
-//         }]
-//     })
-//         .then(res => {
-//             console.log(res);
 //         })
-//         .catch(err => {
-//             console.log(err);
-//         })
-// }
-
+//             .then(res => {
+//                 console.log(res);
+//             })
+//             .catch(err => {
+//                 console.log("Error: " + err);
+//             })
+//     }
+// })();
 
 // generateCertificateImage(
 //     {

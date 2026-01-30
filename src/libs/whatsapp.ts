@@ -1,6 +1,13 @@
 import axios from "axios";
 import FormData from "form-data";
+import fs from "fs";
+import path from "path";
+import archiver from "archiver";
+import { v4 as uuidv4 } from "uuid";
+import { createPdfFromImages } from "../utils/createPdfFromImages";
+import { safeDelete } from "../utils/safeDelete";
 
+const TMP_DIR = path.resolve("tmp");
 type MediaType = "image" | "video" | "document";
 
 interface WhatsAppConfig {
@@ -52,6 +59,42 @@ export class WhatsAppService {
         });
 
         return response.data.id;
+    }
+
+    async uploadPdfToMeta({
+        image1,
+        image2
+    }: {
+        image1: string;
+        image2?: string;
+    }) {
+        let filePath: string | undefined;
+
+        try {
+            filePath = await createPdfFromImages({ image1, image2 });
+
+            const form = new FormData();
+            form.append("file", fs.createReadStream(filePath));
+            form.append("type", "application/pdf");
+            form.append("messaging_product", "whatsapp");
+
+            const response = await axios.post(
+                this.uploadUrl,
+                form,
+                {
+                    headers: {
+                        ...form.getHeaders(),
+                        Authorization: `Bearer ${this.token}`,
+                    },
+                }
+            );
+
+            return {
+                mediaId: response.data.id
+            };
+        } finally {
+            safeDelete(filePath);
+        }
     }
 
     async sendTemplate({

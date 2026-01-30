@@ -26,7 +26,7 @@ const sendProductToWhataspp = async (number: string, couple: string, files: Medi
     if (isProd()) {
         await whatsapp.sendTemplate({
             to: number,
-            templateName: "entregar_prod_8",
+            templateName: "entregar_prod_03",
             components: [{
                 type: "body",
                 parameters: [

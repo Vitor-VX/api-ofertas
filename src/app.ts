@@ -38,7 +38,7 @@ app.use(errorHandler);
 
 //         whatsapp.sendTemplate({
 //             to: "11934065408",
-//             templateName: "entregar_prod_05",
+//             templateName: "entregar_prod08",
 //             components: [
 //                 {
 //                     type: "header",
@@ -47,7 +47,7 @@ app.use(errorHandler);
 //                             type: "document",
 //                             document: {
 //                                 id: mediaId,
-//                                 filename: "certificado-do-amor.zip"
+//                                 filename: "certificado-do-amor.pdf"
 //                             }
 //                         }
 //                     ]

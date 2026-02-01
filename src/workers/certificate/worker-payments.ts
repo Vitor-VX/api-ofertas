@@ -6,16 +6,12 @@ import { mercadoPago } from "../../libs/mercadopago";
 import { msg } from "../../utils/logs";
 import { isProd } from "../../utils/isProd";
 import { OrdersCertificate } from "../../database/models/certifcate";
-import { MediaItem, WhatsAppService } from "../../libs/whatsapp";
+import { WhatsAppService } from "../../libs/whatsapp";
 import { generateCertificateImage } from "../../libs/certificate-generate";
 import { BREATHING_BASE64, INPUT_IMAGE_BASE64, INPUT_IMAGE_WITH_PHOTO_BASE64 } from "../../routes/offers/certificate/data";
+import { mpFilas } from "../../libs/bullMq";
 
 const prod = isProd();
-const connection = {
-    host: prod ? process.env.REDIS_PROD : process.env.REDIS_LOCAL,
-    port: prod ? Number(process.env.PORT_REDIS_PROD) : Number(process.env.PORT_REDIS_LOCAL),
-    password: prod ? "" : process.env.PASSWORD_REDIS_LOCAL
-}
 
 const sendProductToWhataspp = async (number: string, couple: string, img: { one: string, two?: string }) => {
     const whatsapp = new WhatsAppService({
@@ -155,7 +151,7 @@ const worker = new Worker("payments-mp", async (job) => {
 
     return { success: true };
 }, {
-    connection
+    connection: mpFilas.connection
 });
 
 worker.on("active", () => {

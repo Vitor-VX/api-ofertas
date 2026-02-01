@@ -10,7 +10,7 @@ import { Providers } from "../../../data/providers";
 import { signOrderToken } from "../../../core/auth/order-jwt";
 import { randomUUID } from "crypto";
 import crypto from "crypto";
-import { BullMQService } from "../../../libs/bullMq";
+import { BullMQService, mpFilas } from "../../../libs/bullMq";
 import { msg } from "../../../utils/logs";
 import { uploadCloudFlare } from "../../../utils/uploadCloudflare";
 
@@ -283,8 +283,6 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
 
         const { type, action, data } = req.body;
         if (type === "payment" && action === "payment.updated") {
-            const mpFilas = new BullMQService("payments-mp");
-
             const paymentId = data.id;
             msg.success(`Pagamento recebido: ${paymentId} | Ação: ${action}`);
             mpFilas.addJob("payment", { paymentId });

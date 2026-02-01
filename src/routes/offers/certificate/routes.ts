@@ -40,7 +40,6 @@ router.post(
 
         body("name").isString().notEmpty(),
         body("whatsapp").isString().notEmpty(),
-        body("cpf").isString().isLength({ min: 11 }),
         body("email").isEmail()
     ],
     validate,

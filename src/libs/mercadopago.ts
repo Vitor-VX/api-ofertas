@@ -8,10 +8,6 @@ export interface MercadoPagoCreatePix {
     payer: {
         email: string;
         firstName: string;
-        identification: {
-            type: "CPF";
-            number: string;
-        };
     };
     externalReference?: string;
     notificationUrl?: string;
@@ -56,10 +52,6 @@ class MercadoPago {
                     payer: {
                         email: payload.payer.email,
                         first_name: payload.payer.firstName,
-                        identification: {
-                            type: "CPF",
-                            number: payload.payer.identification.number
-                        }
                     }
                 }
             });

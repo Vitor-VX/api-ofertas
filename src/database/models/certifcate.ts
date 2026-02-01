@@ -19,7 +19,6 @@ export interface IOrdersCertificate extends Document {
         name: string;
         whatsapp: string;
         email: string;
-        cpf: string;
     };
     certificate: ICertifcate[];
     payment: {
@@ -60,10 +59,6 @@ const ordersSchema = new Schema<IOrdersCertificate>(
                 required: true
             },
             email: {
-                type: String,
-                required: true
-            },
-            cpf: {
                 type: String,
                 required: true
             }

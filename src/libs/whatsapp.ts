@@ -97,6 +97,37 @@ export class WhatsAppService {
         }
     }
 
+    async uploadToMetaFromUrl(imageUrl: string): Promise<{ mediaId: string }> {
+        const imageResponse = await axios.get(imageUrl, {
+            responseType: "arraybuffer"
+        });
+
+        const contentType = imageResponse.headers["content-type"] || "image/jpeg";
+        const buffer = Buffer.from(imageResponse.data);
+
+        const form = new FormData();
+        form.append("messaging_product", "whatsapp");
+        form.append("file", buffer, {
+            filename: "image.jpg",
+            contentType
+        });
+
+        const uploadResponse = await axios.post(
+            this.uploadUrl,
+            form,
+            {
+                headers: {
+                    Authorization: `Bearer ${this.token}`,
+                    ...form.getHeaders()
+                }
+            }
+        );
+
+        return {
+            mediaId: uploadResponse.data.id
+        };
+    }
+
     async sendTemplate({
         to,
         templateName,

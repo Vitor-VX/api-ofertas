@@ -10,12 +10,12 @@ import { Providers } from "../../../data/providers";
 import { signOrderToken } from "../../../core/auth/order-jwt";
 import { randomUUID } from "crypto";
 import crypto from "crypto";
-import { mpFilas } from "../../../libs/bullMq";
+import { BullMQService } from "../../../libs/bullMq";
 import { msg } from "../../../utils/logs";
 import { uploadCloudFlare } from "../../../utils/uploadCloudflare";
 
 export const createOrder = async (req: Request, res: Response) => {
-    const { product, name, whatsapp, cpf, email } = req.body;
+    const { product, name, whatsapp, email } = req.body;
 
     const {
         plan,
@@ -99,7 +99,7 @@ export const createOrder = async (req: Request, res: Response) => {
     }
 
     const pendingOrder = await OrdersCertificate.findOne({
-        "customer.cpf": cpf,
+        "customer.email": email,
         "payment.status": { $ne: "approved" }
     });
 
@@ -110,11 +110,7 @@ export const createOrder = async (req: Request, res: Response) => {
         externalReference: orderId,
         payer: {
             email,
-            firstName: name,
-            identification: {
-                type: "CPF",
-                number: cpf
-            }
+            firstName: name
         }
     });
 
@@ -131,7 +127,6 @@ export const createOrder = async (req: Request, res: Response) => {
                     customer: {
                         name,
                         whatsapp,
-                        cpf,
                         email
                     },
                     certificate: processedCertificates,
@@ -166,7 +161,6 @@ export const createOrder = async (req: Request, res: Response) => {
         customer: {
             name,
             whatsapp,
-            cpf,
             email
         },
         certificate: processedCertificates,
@@ -176,6 +170,17 @@ export const createOrder = async (req: Request, res: Response) => {
             status: payment.status
         }
     });
+
+    const remarketingQueue = new BullMQService("remarketing");
+    await remarketingQueue.addJob(
+        "remarketing-payment",
+        {
+            id: order._id,
+        },
+        {
+            delay: 5 * 60 * 1000,
+        }
+    );
 
     const token = signOrderToken(orderId);
     return HttpResponse.success(
@@ -278,9 +283,11 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
 
         const { type, action, data } = req.body;
         if (type === "payment" && action === "payment.updated") {
+            const mpFilas = new BullMQService("payments-mp");
+
             const paymentId = data.id;
             msg.success(`Pagamento recebido: ${paymentId} | Ação: ${action}`);
-            mpFilas.job(paymentId);
+            mpFilas.addJob("payment", paymentId);
         }
 
         return HttpResponse.success(res, {});

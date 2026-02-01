@@ -131,20 +131,20 @@ const deliverProduct = async (paymentID: string, id: string) => {
 
 const worker = new Worker("payments-mp", async (job) => {
     const idFila = job.id;
-    const { paymentID } = job.data;
+    const { paymentId } = job.data;
 
     try {
-        msg.info(`Evento recebido do JOB com ID: ${idFila} | PaymentID: ${paymentID}`);
+        msg.info(`Evento recebido do JOB com ID: ${idFila} | PaymentID: ${paymentId}`);
 
-        const payment = await mercadoPago.getPayment(paymentID);
+        const payment = await mercadoPago.getPayment(paymentId);
         if (payment.status !== "approved") return;
 
-        deliverProduct(paymentID, payment.external_reference!!);
+        deliverProduct(paymentId, payment.external_reference!!);
     } catch (error: any) {
         const status = error?.status;
 
         if (status === 404) {
-            msg.error(`Pagamento ${paymentID} não existe. Abortando.`);
+            msg.error(`Pagamento ${paymentId} não existe. Abortando.`);
             throw new UnrecoverableError("ID inválido");
         }
 

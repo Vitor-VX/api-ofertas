@@ -25,7 +25,8 @@ export const CertificateConfig: {
         single: {
             quantity: 1,
             certificates: 1,
-            price: isProd() ? 9.90 : 0.01
+            // price: isProd() ? 9.90 : 0.01
+            price: 0.01
         },
 
         couple: {
@@ -43,10 +44,11 @@ export const CertificateConfig: {
 
     extras: {
         fast_delivery: {
-            price: isProd() ? 2.90 : 0.01
+            // price: isProd() ? 2.90 : 0.01
+            price: 0.01
         },
         with_photo: {
-            price: isProd() ? 4.90 : 0.01
+            price: 0.01
         }
     },
 

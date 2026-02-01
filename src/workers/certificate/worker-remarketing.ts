@@ -35,19 +35,8 @@ const sendRemarketing = async (
 
     await whatsapp.sendTemplate({
         to: number,
-        templateName: "remarketing_prod_01",
+        templateName: "remarketing_prod_02",
         components: [
-            {
-                type: "header",
-                parameters: [
-                    {
-                        type: "image",
-                        image: {
-                            id: mediaId
-                        }
-                    }
-                ]
-            },
             {
                 type: "body",
                 parameters: [
@@ -59,15 +48,12 @@ const sendRemarketing = async (
             },
             {
                 type: "button",
-                sub_type: "order_details",
+                sub_type: "copy_code",
                 index: 0,
                 parameters: [
                     {
-                        type: "action",
-                        action: {
-                            // catalog_id: "SEU_CATALOGO_ID",
-                            order_id: orderId
-                        }
+                        type: "text",
+                        text: pixCode // {{9}}
                     }
                 ]
             }
